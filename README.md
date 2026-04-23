@@ -48,9 +48,24 @@ code that depends on a new schema version.
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm test:e2e
 pnpm build
 pnpm format:check
 ```
+
+## E2E Tests
+
+Playwright is wired in as the browser test runner for smoke coverage.
+
+```bash
+pnpm test:e2e:install
+pnpm test:e2e
+```
+
+The Playwright config starts `pnpm dev` automatically, supplies fallback auth
+secrets for the login flow, and currently covers the protected-route redirect
+plus the login screen. If you want authenticated or database-backed flows, keep
+your `.env.local` populated so the app can reuse the real local settings.
 
 ## Deploy
 
