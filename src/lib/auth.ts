@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import {
   createSessionToken,
   hasValidSessionToken,
@@ -32,7 +33,7 @@ export async function requireAuthenticatedSession() {
   const authenticated = await isAuthenticated();
 
   if (!authenticated) {
-    throw new Error('Unauthorized');
+    redirect('/login');
   }
 }
 

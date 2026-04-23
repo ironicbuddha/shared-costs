@@ -88,7 +88,7 @@ export function validateExpenseInput(input: CreateExpenseInput) {
     errors.split = "Carlo's share must be between R0.00 and the total.";
   }
 
-  if (warrenShare < 0) {
+  if (!errors.split && warrenShare < 0) {
     errors.split = "Warren's share cannot be negative. Lower Carlo's share.";
   }
 

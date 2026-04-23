@@ -1,3 +1,5 @@
+import { timingSafeEqualString } from './timing-safe';
+
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 function getSessionSecret() {
@@ -55,7 +57,7 @@ export async function hasValidSessionToken(token?: string | null) {
 
   const expectedSignature = await signMessage(`shared-costs:${expiresAt}`);
 
-  return signature === expectedSignature;
+  return timingSafeEqualString(signature, expectedSignature);
 }
 
 export { SESSION_TTL_SECONDS };

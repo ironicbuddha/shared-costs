@@ -24,44 +24,6 @@ type SettlementRow = {
   reverted_at: string | null;
 };
 
-let schemaReadyPromise: Promise<void> | undefined;
-
-async function ensureLedgerSchema() {
-  if (!schemaReadyPromise) {
-    schemaReadyPromise = (async () => {
-      const sql = getSql();
-
-      await sql`
-        CREATE TABLE IF NOT EXISTS expenses (
-          id BIGSERIAL PRIMARY KEY,
-          title TEXT NOT NULL,
-          vendor TEXT NOT NULL,
-          paid_by TEXT NOT NULL CHECK (paid_by IN ('Carlo', 'Warren')),
-          amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
-          carlo_share NUMERIC(12, 2) NOT NULL CHECK (carlo_share >= 0),
-          warren_share NUMERIC(12, 2) NOT NULL CHECK (warren_share >= 0),
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
-      `;
-
-      await sql`
-        CREATE TABLE IF NOT EXISTS settlements (
-          id BIGSERIAL PRIMARY KEY,
-          total NUMERIC(12, 2) NOT NULL,
-          amount NUMERIC(12, 2) NOT NULL,
-          payer TEXT NOT NULL CHECK (payer IN ('Carlo', 'Warren')),
-          receiver TEXT NOT NULL CHECK (receiver IN ('Carlo', 'Warren')),
-          expense_snapshot JSONB NOT NULL,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          reverted_at TIMESTAMPTZ
-        )
-      `;
-    })();
-  }
-
-  await schemaReadyPromise;
-}
-
 function mapExpense(row: ExpenseRow): Expense {
   return {
     id: Number(row.id),
@@ -77,7 +39,6 @@ function mapExpense(row: ExpenseRow): Expense {
 }
 
 export async function getLedgerState(): Promise<LedgerState> {
-  await ensureLedgerSchema();
   const sql = getSql();
 
   const transactionResults = (await sql.transaction([
@@ -118,7 +79,6 @@ export async function getLedgerState(): Promise<LedgerState> {
 }
 
 export async function createExpense(input: CreateExpenseInput) {
-  await ensureLedgerSchema();
   const sql = getSql();
   const { errors, normalized } = validateExpenseInput(input);
 
@@ -149,7 +109,6 @@ export async function createExpense(input: CreateExpenseInput) {
 }
 
 export async function settleCurrentMonth() {
-  await ensureLedgerSchema();
   const sql = getSql();
   const expenseRows = (await sql`
     SELECT id, title, vendor, paid_by, amount, carlo_share, warren_share
@@ -198,7 +157,6 @@ export async function settleCurrentMonth() {
 }
 
 export async function undoLastSettlement() {
-  await ensureLedgerSchema();
   const sql = getSql();
 
   const transactionResults = (await sql.transaction([
